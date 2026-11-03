@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#b83272">
+<title>Outubro Rosa | Quiz da Prevenção</title>
+<style>
+:root{--pink:#d94b91;--deep:#8f245d;--light:#fff0f7;--ink:#352332;--muted:#755f70;--white:#fff;--green:#16845d;--red:#b8324b}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;padding:22px;display:grid;place-items:center;font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:var(--ink);background:radial-gradient(circle at top left,#ffe1ef,transparent 45%),linear-gradient(135deg,#fff7fb,#f9d8e9)}
+.app{width:min(100%,720px);background:#ffffffed;border:1px solid #f2c5dc;border-radius:26px;padding:clamp(20px,5vw,38px);box-shadow:0 22px 70px #8f245d20}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:24px}
+.brand{font-weight:900;letter-spacing:.08em;color:var(--deep);font-size:.82rem}
+.ribbon{font-size:1.65rem}
+h1{font-size:clamp(2rem,6vw,3rem);line-height:1.08;margin:0 0 12px;color:var(--deep)}
+h2{font-size:clamp(1.2rem,4vw,1.55rem);line-height:1.4;margin:0 0 20px}
+p{line-height:1.6}
+.lead{color:var(--muted);font-size:1.05rem;margin:0 0 22px}
+.note{background:var(--light);border-left:4px solid var(--pink);padding:13px 15px;border-radius:10px;color:#63324f;font-size:.92rem;margin:20px 0}
+button{font:inherit}
+.primary{border:0;border-radius:13px;padding:14px 21px;background:var(--pink);color:white;font-weight:800;cursor:pointer;box-shadow:0 7px 18px #d94b9130}
+.primary:hover{background:var(--deep)}
+.primary:focus-visible,.answer:focus-visible{outline:3px solid #7c174c;outline-offset:3px}
+.meta{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:.9rem;font-weight:650}
+.track{height:9px;background:#f5d8e7;border-radius:20px;overflow:hidden;margin:14px 0 25px}
+.fill{height:100%;width:0;background:linear-gradient(90deg,#ef91bc,var(--deep));transition:width .25s}
+.answers{display:grid;gap:11px}
+.answer{width:100%;text-align:left;padding:15px 16px;border:1.5px solid #edc5d9;background:#fff8fc;border-radius:13px;color:var(--ink);cursor:pointer;transition:.15s}
+.answer:hover:not(:disabled){border-color:var(--pink);transform:translateY(-1px)}
+.answer:disabled{cursor:default;opacity:1}
+.answer.correct{background:#e4f7ef;border-color:var(--green)}
+.answer.wrong{background:#fff0f1;border-color:var(--red)}
+#feedback{min-height:48px;margin:17px 0 8px;font-weight:650;line-height:1.5}
+.actions{display:flex;justify-content:flex-end;margin-top:14px}
+.hidden{display:none!important}
+.center{text-align:center}
+.big{font-size:3.6rem;font-weight:950;color:var(--deep);margin:12px 0 0}
+.small{font-size:.88rem;color:var(--muted)}
+footer{margin-top:25px;text-align:center;color:#98758a;font-size:.78rem}
+@media(max-width:460px){body{padding:10px}.app{border-radius:19px}header{margin-bottom:19px}}
+</style>
+</head>
+<body>
+<main class="app">
+<header><div class="brand">OUTUBRO ROSA · CONSCIENTIZAÇÃO</div><div class="ribbon" aria-label="Laço rosa">🎗️</div></header>
+
+<section id="intro">
+<h1>Conhecimento também é prevenção.</h1>
+<p class="lead">Participe do Quiz Outubro Rosa e descubra o quanto você sabe sobre saúde das mamas, sinais de atenção e prevenção.</p>
+<div class="note"><strong>Antes de começar:</strong> este jogo é educativo. Ele não substitui consultas, exames ou orientações de profissionais de saúde.</div>
+<p>São 8 perguntas de múltipla escolha. Leia com atenção, escolha uma resposta e veja a explicação.</p>
+<button class="primary" id="start">Começar o quiz 💗</button>
+</section>
+
+<section id="game" class="hidden">
+<div class="meta"><span id="count">Pergunta 1 de 8</span><span id="points">0 pontos</span></div>
+<div class="track"><div class="fill" id="progress"></div></div>
+<h2 id="question"></h2>
+<div class="answers" id="answers"></div>
+<p id="feedback" aria-live="polite"></p>
+<div class="actions"><button class="primary hidden" id="next">Próxima →</button></div>
+</section>
+
+<section id="result" class="hidden center">
+<div class="ribbon">🎗️💗🎗️</div>
+<h1>Você concluiu!</h1>
+<p class="lead">Informação é uma aliada importante do cuidado com a saúde.</p>
+<div class="big"><span id="final">0</span>/80</div>
+<p id="message"></p>
+<p id="summary" class="small"></p>
+<div class="note" style="text-align:left"><strong>Lembre-se:</strong> conheça o que é habitual no seu corpo e procure uma unidade de saúde se perceber alguma alteração persistente ou suspeita. A equipe de saúde pode orientar sobre a avaliação e os exames indicados para cada pessoa.</div>
+<button class="primary" id="again">Jogar novamente</button>
+</section>
+<footer>Outubro Rosa • Compartilhe informação e incentive o cuidado.</footer>
+</main>
+<script>
+const questions = [
+ {q:"O que representa a campanha Outubro Rosa?",a:["Uma campanha de incentivo à prática de esportes","Uma campanha de conscientização sobre o câncer de mama e a saúde das mamas","Uma campanha exclusiva para quem já teve câncer","Uma campanha de vacinação"],correct:1,why:"O Outubro Rosa busca ampliar a conscientização, compartilhar informações e incentivar o cuidado com a saúde das mamas."},
+ {q:"Qual atitude é importante para cuidar da saúde das mamas?",a:["Ignorar mudanças que não doem","Fazer somente exames quando houver dor","Conhecer o próprio corpo e procurar atendimento ao notar alterações","Acreditar que o câncer de mama sempre apresenta sintomas"],correct:2,why:"Conhecer o próprio corpo ajuda a perceber mudanças. A avaliação de um profissional é importante quando algo diferente aparece."},
+ {q:"Qual destes pode ser um sinal de alerta que merece avaliação?",a:["Um nódulo ou caroço novo na mama ou na axila","Sentir fome antes do almoço","Cabelo crescer","Unhas quebrarem"],correct:0,why:"Um nódulo novo na mama ou na axila pode ter várias causas, mas precisa ser avaliado por um profissional de saúde."},
+ {q:"O câncer de mama pode atingir:",a:["Somente mulheres idosas","Somente pessoas com histórico familiar","Mulheres e, mais raramente, homens","Apenas pessoas que não praticam exercícios"],correct:2,why:"É muito mais comum em mulheres, mas homens também podem desenvolver câncer de mama."},
+ {q:"Se uma pessoa percebe uma alteração suspeita na mama, o que deve fazer?",a:["Esperar obrigatoriamente até a próxima campanha Outubro Rosa","Procurar uma unidade de saúde ou profissional de saúde","Tentar tratar em casa sem avaliação","Pedir diagnóstico pelas redes sociais"],correct:1,why:"Não é necessário esperar. Procure uma unidade de saúde para receber orientação e avaliação."},
+ {q:"A mamografia é:",a:["Um exame de imagem das mamas","Um exame de sangue","Uma cirurgia preventiva","Um tipo de vacina"],correct:0,why:"A mamografia é um exame de imagem usado no rastreamento e na investigação de alterações nas mamas."},
+ {q:"Quem deve decidir quando e com que frequência fazer mamografia de rastreamento?",a:["Uma publicação na internet","Um amigo ou familiar","A pessoa, seguindo orientação de profissional de saúde e recomendações oficiais","Ninguém: todas as pessoas precisam fazer todo mês"],correct:2,why:"A indicação depende de fatores como idade, histórico e diretrizes de saúde. Converse com a equipe da sua unidade de saúde."},
+ {q:"Qual frase sobre o câncer de mama é verdadeira?",a:["Todo caroço é câncer","Quando não existe dor, não há problema","Somente quem tem casos na família pode desenvolver","Nem todo nódulo é câncer, mas alterações suspeitas devem ser avaliadas"],correct:3,why:"Muitos nódulos são benignos. Ainda assim, não é possível saber a causa sem avaliação adequada."}
+];
+const $=id=>document.getElementById(id);
+let order=[],index=0,score=0,hits=0,locked=false;
+function screen(id){["intro","game","result"].forEach(x=>$(x).classList.toggle("hidden",x!==id))}
+function start(){order=[...questions.keys()].sort(()=>Math.random()-.5);index=0;score=0;hits=0;$("points").textContent="0 pontos";screen("game");render()}
+function render(){
+ locked=false;const q=questions[order[index]];
+ $("count").textContent=`Pergunta ${index+1} de ${questions.length}`;
+ $("progress").style.width=`${index/questions.length*100}%`;
+ $("question").textContent=q.q;$("feedback").textContent="";$("feedback").style.color="var(--ink)";
+ $("next").classList.add("hidden");$("next").textContent=index===questions.length-1?"Ver resultado":"Próxima →";
+ $("answers").replaceChildren();
+ q.a.forEach((choice,i)=>{const b=document.createElement("button");b.className="answer";b.textContent=String.fromCharCode(65+i)+") "+choice;b.addEventListener("click",()=>answer(i));$("answers").append(b)});
+}
+function answer(selected){
+ if(locked)return;locked=true;const q=questions[order[index]];
+ [...$("answers").children].forEach((b,i)=>{b.disabled=true;if(i===q.correct)b.classList.add("correct");if(i===selected&&i!==q.correct)b.classList.add("wrong")});
+ if(selected===q.correct){score+=10;hits++;$("feedback").textContent="✅ Muito bem! "+q.why;$("feedback").style.color="var(--green)"}
+ else{$("feedback").textContent="💡 "+q.why;$("feedback").style.color="var(--red)"}
+ $("points").textContent=score+" pontos";$("progress").style.width=(index+1)/questions.length*100+"%";$("next").classList.remove("hidden");
+}
+function next(){if(!locked)return;if(++index<questions.length)render();else finish()}
+function finish(){screen("result");$("final").textContent=score;$("summary").textContent=`Você acertou ${hits} de ${questions.length} perguntas.`;$("message").textContent=score===80?"Parabéns! Você gabaritou! 🏆":score>=60?"Muito bem! Continue compartilhando informação confiável. 💗":score>=40?"Bom trabalho! Aprender mais também é uma forma de cuidado.":"Continue aprendendo e compartilhe informações confiáveis. Cada conversa pode fazer diferença."}
+$("start").addEventListener("click",start);$("next").addEventListener("click",next);$("again").addEventListener("click",start);
+</script>
+</body>
+</html>
