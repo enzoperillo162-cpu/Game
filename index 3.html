@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#101827">
+  <title>Quiz Interativo</title>
+  <style>
+    :root { color-scheme: dark; --bg:#0b1220; --panel:#151f32; --panel2:#1d2a40; --text:#f4f7fb; --muted:#aab7ca; --accent:#7c9cff; --good:#36c98f; --bad:#ff6b78; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; display:grid; place-items:center; padding:22px; font-family:system-ui,-apple-system,Segoe UI,sans-serif; color:var(--text); background:radial-gradient(circle at top,#1d3153 0,#0b1220 55%); }
+    .app { width:min(100%,680px); background:rgba(21,31,50,.96); border:1px solid #2a3a55; border-radius:24px; padding:clamp(20px,5vw,36px); box-shadow:0 24px 80px #0007; }
+    header { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:24px; }
+    .brand { font-weight:800; letter-spacing:.08em; color:var(--accent); font-size:.85rem; }
+    .score { background:var(--panel2); padding:9px 14px; border-radius:999px; font-weight:700; }
+    h1 { font-size:clamp(1.8rem,5vw,2.6rem); margin:0 0 8px; }
+    .subtitle { color:var(--muted); margin:0 0 26px; line-height:1.5; }
+    .progress-wrap { height:8px; background:#29364b; border-radius:20px; overflow:hidden; margin:18px 0 26px; }
+    .progress { height:100%; width:0; background:linear-gradient(90deg,var(--accent),#b18cff); transition:width .25s; }
+    .meta { display:flex; justify-content:space-between; color:var(--muted); font-size:.9rem; gap:12px; }
+    #question { font-size:clamp(1.2rem,4vw,1.55rem); line-height:1.4; margin:0 0 20px; }
+    .answers { display:grid; gap:12px; }
+    .answer { width:100%; text-align:left; color:var(--text); background:var(--panel2); border:1px solid #34445e; border-radius:14px; padding:15px 17px; font-size:1rem; cursor:pointer; transition:.18s; }
+    .answer:hover:not(:disabled) { border-color:var(--accent); transform:translateY(-1px); }
+    .answer:disabled { cursor:default; opacity:1; }
+    .answer.correct { border-color:var(--good); background:#163b36; }
+    .answer.wrong { border-color:var(--bad); background:#452630; }
+    #feedback { min-height:28px; margin:16px 0 8px; font-weight:650; }
+    .actions { display:flex; justify-content:flex-end; margin-top:16px; }
+    button.primary { border:0; border-radius:12px; padding:13px 20px; background:var(--accent); color:#101827; font-weight:800; font-size:1rem; cursor:pointer; }
+    button.primary:hover { filter:brightness(1.08); }
+    button:focus-visible { outline:3px solid white; outline-offset:3px; }
+    .hidden { display:none !important; }
+    .center { text-align:center; }
+    .big-score { font-size:3.5rem; font-weight:900; color:var(--accent); margin:14px 0 4px; }
+    .small { color:var(--muted); }
+    @media(max-width:420px) { body{padding:12px}.app{border-radius:18px}.meta{font-size:.8rem} }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div class="brand">⚡ DESAFIO DO CONHECIMENTO</div>
+      <div class="score">⭐ <span id="score">0</span> pontos</div>
+    </header>
+
+    <section id="start-screen">
+      <h1>Vamos testar seus conhecimentos?</h1>
+      <p class="subtitle">Responda às perguntas, acumule pontos e tente acertar todas. São 10 perguntas de conhecimentos gerais.</p>
+      <button class="primary" id="start-btn">Começar jogo</button>
+    </section>
+
+    <section id="game-screen" class="hidden">
+      <div class="meta"><span id="question-count">Pergunta 1 de 10</span><span id="category">Conhecimentos gerais</span></div>
+      <div class="progress-wrap"><div class="progress" id="progress"></div></div>
+      <h2 id="question"></h2>
+      <div class="answers" id="answers"></div>
+      <p id="feedback" aria-live="polite"></p>
+      <div class="actions"><button class="primary hidden" id="next-btn">Próxima pergunta →</button></div>
+    </section>
+
+    <section id="end-screen" class="hidden center">
+      <h1>Fim de jogo! 🎉</h1>
+      <p class="subtitle">Você concluiu o desafio.</p>
+      <div class="big-score"><span id="final-score">0</span>/100</div>
+      <p id="result-message"></p>
+      <p class="small" id="correct-count"></p>
+      <button class="primary" id="restart-btn">Jogar novamente</button>
+    </section>
+  </main>
+
+  <script>
+    // Para personalizar o jogo, edite ou adicione perguntas neste array.
+    const questions = [
+      { category:"Geografia", question:"Qual é a capital do Brasil?", options:["São Paulo","Brasília","Rio de Janeiro","Salvador"], answer:1, explanation:"Brasília é a capital federal do Brasil desde 1960." },
+      { category:"Ciências", question:"Qual planeta é conhecido como Planeta Vermelho?", options:["Vênus","Júpiter","Marte","Saturno"], answer:2, explanation:"Marte tem aparência avermelhada por causa dos óxidos de ferro em sua superfície." },
+      { category:"Matemática", question:"Quanto é 9 × 8?", options:["64","72","81","96"], answer:1, explanation:"9 multiplicado por 8 é igual a 72." },
+      { category:"História", question:"Em que ano ocorreu a Proclamação da República no Brasil?", options:["1822","1888","1889","1500"], answer:2, explanation:"A República foi proclamada em 15 de novembro de 1889." },
+      { category:"Natureza", question:"Qual é o maior animal do planeta?", options:["Elefante-africano","Tubarão-branco","Girafa","Baleia-azul"], answer:3, explanation:"A baleia-azul é o maior animal conhecido." },
+      { category:"Tecnologia", question:"O que significa a sigla WWW?", options:["World Wide Web","Web World Wide","World Web Window","Wide World Wire"], answer:0, explanation:"WWW significa World Wide Web, o sistema de páginas interligadas da internet." },
+      { category:"Literatura", question:"Quem escreveu 'O Pequeno Príncipe'?", options:["Monteiro Lobato","Antoine de Saint-Exupéry","Machado de Assis","José de Alencar"], answer:1, explanation:"O autor francês Antoine de Saint-Exupéry publicou a obra em 1943." },
+      { category:"Esportes", question:"Quantos jogadores de cada time começam uma partida de futebol em campo?", options:["9","10","11","12"], answer:2, explanation:"Cada equipe começa a partida com 11 jogadores." },
+      { category:"Ciências", question:"Qual gás as plantas absorvem principalmente durante a fotossíntese?", options:["Oxigênio","Hidrogênio","Nitrogênio","Dióxido de carbono"], answer:3, explanation:"As plantas absorvem dióxido de carbono (CO₂) e usam luz para produzir açúcares." },
+      { category:"Astronomia", question:"Qual é a estrela mais próxima da Terra?", options:["Sirius","Sol","Próxima Centauri","Alpha Centauri A"], answer:1, explanation:"O Sol é a estrela mais próxima da Terra." }
+    ];
+
+    const $ = (id) => document.getElementById(id);
+    let order = [], current = 0, score = 0, correctAnswers = 0, answered = false;
+
+    function showScreen(screen) {
+      ["start-screen","game-screen","end-screen"].forEach(id => $(id).classList.add("hidden"));
+      $(screen).classList.remove("hidden");
+    }
+
+    function startGame() {
+      order = [...questions.keys()].sort(() => Math.random() - 0.5);
+      current = 0; score = 0; correctAnswers = 0;
+      $("score").textContent = score;
+      showScreen("game-screen");
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      answered = false;
+      const q = questions[order[current]];
+      $("question-count").textContent = `Pergunta ${current + 1} de ${questions.length}`;
+      $("category").textContent = q.category;
+      $("progress").style.width = `${(current / questions.length) * 100}%`;
+      $("question").textContent = q.question;
+      $("feedback").textContent = "";
+      $("next-btn").classList.add("hidden");
+      $("next-btn").textContent = current === questions.length - 1 ? "Ver resultado →" : "Próxima pergunta →";
+      $("answers").innerHTML = "";
+      q.options.forEach((option, index) => {
+        const button = document.createElement("button");
+        button.className = "answer";
+        button.textContent = `${String.fromCharCode(65 + index)}. ${option}`;
+        button.addEventListener("click", () => chooseAnswer(index));
+        $("answers").appendChild(button);
+      });
+    }
+
+    function chooseAnswer(selected) {
+      if (answered) return;
+      answered = true;
+      const q = questions[order[current]];
+      const buttons = [...$("answers").children];
+      buttons.forEach((button, index) => {
+        button.disabled = true;
+        if (index === q.answer) button.classList.add("correct");
+        if (index === selected && selected !== q.answer) button.classList.add("wrong");
+      });
+      if (selected === q.answer) {
+        score += 10;
+        correctAnswers++;
+        $("feedback").textContent = `✅ Correto! +10 pontos. ${q.explanation}`;
+        $("feedback").style.color = "var(--good)";
+      } else {
+        $("feedback").textContent = `❌ Não foi dessa vez. ${q.explanation}`;
+        $("feedback").style.color = "var(--bad)";
+      }
+      $("score").textContent = score;
+      $("progress").style.width = `${((current + 1) / questions.length) * 100}%`;
+      $("next-btn").classList.remove("hidden");
+    }
+
+    function nextQuestion() {
+      if (!answered) return;
+      current++;
+      if (current < questions.length) renderQuestion();
+      else showResults();
+    }
+
+    function showResults() {
+      showScreen("end-screen");
+      $("final-score").textContent = score;
+      $("correct-count").textContent = `Você acertou ${correctAnswers} de ${questions.length} perguntas.`;
+      $("result-message").textContent =
+        score === 100 ? "Perfeito! Você gabaritou! 🏆" :
+        score >= 70 ? "Mandou muito bem! Continue assim! 👏" :
+        score >= 40 ? "Bom trabalho! Que tal tentar mais uma vez?" :
+        "Continue praticando. Na próxima você vai melhor! 💪";
+    }
+
+    $("start-btn").addEventListener("click", startGame);
+    $("next-btn").addEventListener("click", nextQuestion);
+    $("restart-btn").addEventListener("click", startGame);
+  </script>
+</body>
+</html>
